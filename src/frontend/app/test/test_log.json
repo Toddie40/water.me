@@ -1,0 +1,32 @@
+
+{
+    "log" : [
+        {
+            "id" : 1,
+            "timestamp" : "20250815:13.28.02.003",
+            "endpoint": "/status",
+            "request_body" : "{}",
+            "response_status": 200,
+            "response_body" : "{some kind of faffy json}",
+            "client_ip" : "192.168.2.102"
+        },
+        {
+            "id" : 2,
+            "timestamp" : "20250814:13.25.12.067",
+            "endpoint": "/water/2",
+            "request_body" : "{}",
+            "response_status": 500,
+            "response_body" : "{some kind of faffy json}",
+            "client_ip" : "192.168.1.83"
+        },
+        {
+            "id" : 3,
+            "timestamp" : "20240625:13.28.02.003",
+            "endpoint": "/status/2",
+            "request_body" : "{}",
+            "response_status": 200,
+            "response_body" : "{some kind of faffy json}",
+            "client_ip" : "192.168.1.89"
+        }
+    ]
+}

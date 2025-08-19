@@ -1,0 +1,65 @@
+:root {
+  --forest-green: #316931;
+  --moss-green: #8A9A5B;
+  --rich-soil-brown: #5B3A29;
+  --earth-taupe: #D2B48C;
+  --golden-yellow: #FFD700;
+  --petal-pink: #FFB6C1;
+  --tangerine-orange: #FFA500;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+.navbar {
+  background-color: var(--moss-green);
+}
+
+.fullPageContent {
+  background-color: var(--earth-taupe);
+  max-width: 1280px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.subContent {
+  padding: 2rem;
+}
+
+.footer {
+  background-color: var(--rich-soil-brown);
+  padding: 1rem;
+  color: white;
+  font-weight: bold;
+}
+
+.pageHeading {
+  color: var(--forest-green);
+  font-weight: light;
+  text-align: left;
+  font-size: 2rem;
+}
+
+.plantPropertyPropsCol {
+  font-weight: bold;
+}
+
+.plantPropertyLine {
+  text-align: left;
+  margin-bottom: .25rem;
+}
+
+.plantPropertiesCol {
+  background-color: var(--rich-soil-brown);
+  padding: 1rem;
+    border-radius: 1rem;
+}
+
+.plantPropertiesMain {
+  padding: 1rem;
+  background-color: var(--earth-taupe);
+  color: white;
+    border-radius: 1rem;
+}

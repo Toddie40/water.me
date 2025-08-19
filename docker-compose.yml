@@ -3,20 +3,33 @@ version: '3.8'
 
 services:
   frontend:
+    container_name: frontend
     build:
       context: ./src/frontend
       dockerfile: Dockerfile
     ports:
-      - "3000:80"
+      - "80:3000"
+    networks:
+      - plant-network
+
 
   api:
+    container_name: api
     build:
       context: ./src/api
       dockerfile: Dockerfile
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: plant_waterer
     ports:
       - "8000:8000"
+    networks:
+      - plant-network
+
 
   database:
+    container_name: database
     build:
       context: ./src/database
       dockerfile: Dockerfile
@@ -24,7 +37,15 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: plant_waterer
+      PGDATA: /database
     volumes:
       - ./src/database/storage:/database
     ports:
       - "5432:5432"
+    networks:
+      - plant-network
+
+
+networks:
+  plant-network:
+    driver: bridge

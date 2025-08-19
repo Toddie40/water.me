@@ -1,11 +1,12 @@
 from fastapi import FastAPI
 
-from .routers import control
+from .routers import control, status
 
 app = FastAPI()
 
 # api endpoints for controlling the plant waterer
 app.include_router(control.router)
+app.include_router(status.router)
 
 # api endpoints for reading the status of the plant waterer
 # app.include_router(status.router)

@@ -35,6 +35,18 @@ CREATE TABLE IF NOT EXISTS history (
     FOREIGN KEY (plant_index) REFERENCES plants(index)
 );
 
+-- also lets add a table to record logs. So each time an API request is made, we will log it.
+CREATE TABLE IF NOT EXISTS log (
+    id SERIAL PRIMARY KEY,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    endpoint TEXT NOT NULL,
+    request_body TEXT NOT NULL,
+    response_status INT NOT NULL,
+    response_body TEXT NOT NULL,
+    client_ip TEXT NOT NULL
+)
+
+
 
 -- Below i have tried to use GPT4.1 and some not insignificant faffing about to generate an ascii diagram of these 3 tables.
 
