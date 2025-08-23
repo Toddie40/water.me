@@ -1,4 +1,5 @@
 import axios from 'axios';
+import './Status.css';
 import PlantStatusItem from '@/app/components/status/PlantStatusItem';
 
 interface StatusData {
@@ -11,7 +12,7 @@ export default async function StatusPage() {
 
   try {
     // Use the internal hostname if needed e.g. "http://api:8000/status" inside Docker
-    const res = await axios.get<StatusData>("http://api:8000/status");
+    const res = await axios.get<StatusData>("http://localhost:8000/status");
     statusData = res.data.result;
   } catch (err: any) {
     error = err.message || 'Unknown error';
@@ -23,7 +24,11 @@ export default async function StatusPage() {
       {error ? (
         <p>Error retrieving status information from API: {error}</p>
       ) : (
-        <PlantStatusItem statusData={statusData} />
+        <div className='plantStatusItemList'>
+          {statusData.map((dataObject: Object, index: number) => (
+            <PlantStatusItem key={`plantStatusItem-${index}`} statusData={dataObject} />    
+          ))}
+        </div>
       )}
     </div>
   );
