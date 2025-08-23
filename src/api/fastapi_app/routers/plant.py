@@ -1,7 +1,7 @@
 # This file contains the api routes for endpoints which get status information from the plant waterer.
 from fastapi import APIRouter, Request, Form, UploadFile, File, HTTPException
 
-from typing import Annotated
+from typing import Annotated, List
 from pydantic import BaseModel
 
 from ..utils.db_conf import database_connection
@@ -17,6 +17,9 @@ class Plant(BaseModel):
     description: str
     moisture_threshold: float
     # Will need to check for the image too, but that will happen in the function logic
+
+class Plants(BaseModel):
+    plants: List[Plant]
 
 @router.post("/plant/add", response_model=Plant)
 async def add_plant(
@@ -104,3 +107,27 @@ async def get_plant(plant_name: str, request: Request):
                 description=row[1],
                 moisture_threshold=row[2]
             )
+        
+@router.get("/plant/get/all")
+async def get_all_plants():
+    # return a json object of a list of Plant models
+    with database_connection() as conn:
+        with conn.cursor() as curs:
+            query = """
+            SELECT * FROM plants;
+            """
+            curs.execute(query)
+            rows = curs.fetchall()  # Fetch all rows
+
+            if not rows:  # Empty list check
+                raise HTTPException(status_code=404, detail="No plants found")
+
+            plants_list = [
+                Plant(
+                    name=row[0],
+                    description=row[1],
+                    moisture_threshold=row[2]
+                ) for row in rows
+            ]
+
+            return Plants(plants=plants_list)
