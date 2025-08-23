@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS log (
     id SERIAL PRIMARY KEY,
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     endpoint TEXT NOT NULL,
+    method TEXT NOT NULL,
     request_body TEXT NOT NULL,
     response_status INT NOT NULL,
     response_body TEXT NOT NULL,

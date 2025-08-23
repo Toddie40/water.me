@@ -12,6 +12,7 @@ import datetime
 class LogEntry(BaseModel):
     timestamp: datetime.datetime
     endpoint: str
+    method: str
     request_body: str  # json string
     response_status: int
     response_body: str # json string
@@ -25,8 +26,8 @@ def log(entry: LogEntry):
 
     # generate sql query string
     query = f"""
-    INSERT INTO log (timestamp, endpoint, request_body, response_status, response_body, client_ip)
-    VALUES (%(timestamp)s, %(endpoint)s, %(request_body)s, %(response_status)s, %(response_body)s, %(client_ip)s);
+    INSERT INTO log (timestamp, endpoint, method, request_body, response_status, response_body, client_ip)
+    VALUES (%(timestamp)s, %(endpoint)s, %(method)s, %(request_body)s, %(response_status)s, %(response_body)s, %(client_ip)s);
     """
 
     # make db connection
@@ -43,6 +44,7 @@ def log(entry: LogEntry):
                             {
                                 'timestamp':  entry.timestamp,
                                 'endpoint': entry.endpoint,
+                                'method' : entry.method,
                                 'request_body': entry.request_body,
                                 'response_status': entry.response_status,
                                 'response_body': entry.response_body,
