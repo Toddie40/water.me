@@ -85,16 +85,16 @@ async def add_plant(
     
 
 
-@router.get("/plant/{plant_id}", response_model=Plant)
-async def get_plant(plant_id: int, request: Request):
+@router.get("/plant/get", response_model=Plant)
+async def get_plant(plant_name: str, request: Request):
     with database_connection() as conn:
         with conn.cursor() as curs:
             query = """
             SELECT name, description, moisture_threshold
             FROM plants
-            WHERE id = %(id)s
+            WHERE name = %(name)s
             """
-            curs.execute(query, {'id': plant_id})
+            curs.execute(query, {'name': plant_name})
             row = curs.fetchone()
             if row is None:
                 raise HTTPException(status_code=404, detail="Plant not found")
