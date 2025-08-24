@@ -1,109 +1,45 @@
-'use client'
+// app/log/page.tsx  (server component, no 'use client')
+import LogTableClient from './LogTableClient';
+import axios from 'axios';
 
-import { Table, Button, Container, Row, Col } from 'react-bootstrap';
-import LogEntry from './LogEntry';
-import { useState, type ChangeEvent, type JSX } from 'react';
-
-// Define an interface for each log row. Adjust the types as needed.
 interface LogRow {
   id: string | number;
   [key: string]: any;
 }
 
-// Importing the JSON; we expect log.log to be an array of LogRow items.
-import log from '../../test/test_log.json';
-
-// Generate the table header from the keys of the first log entry.
-function generateHeader(logData: LogRow[]): JSX.Element {
-  const keys: string[] = Object.keys(logData[0]);
-
-  return (
-    <thead>
-      <tr>
-        {keys.map((key) => (
-          <th key={key}>{key}</th>
-        ))}
-      </tr>
-    </thead>
-  );
+interface LogResponse {
+  items: LogRow[];
+  total: number;
 }
 
-const Log = (): JSX.Element => {
-  const [currentPage, setCurrentPage] = useState<number>(0);
-  const [linesPerPage, setLinesPerPage] = useState<number>(10);
-
-  // Cast the imported log data to LogRow[]
-  const allLogs = (log.log as LogRow[]);
-  const logData: LogRow[] = allLogs.slice(
-    currentPage * linesPerPage,
-    currentPage * linesPerPage + linesPerPage
-  );
-
-  function nextPage(): void {
-    setCurrentPage(prev => Math.min(prev + 1, Math.floor((allLogs.length - 1) / linesPerPage)));
+// serverside function to fetch the logs from the fastAPI container
+async function fetchLogs(pageNumber: number, linesPerPage: number): Promise<LogResponse> {
+  'use server'
+  try {
+    const response = await axios.get<LogResponse>("http://api:8000/log", {
+      params: {
+        lines_per_page: linesPerPage,
+        page_no: pageNumber,
+      },
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data ?? { items: [], total: 0 };
+  } catch (error) {
+    console.error("Failed to fetch logs:", error);
+    return { items: [], total: 0 };
   }
+}
 
-  function prevPage(): void {
-    setCurrentPage(prev => Math.max(0, prev - 1));
-  }
 
-  function updateLinesPerPage(e: ChangeEvent<HTMLInputElement>): void {
-    const fallback = 10;
-    const intified = parseInt(e.target.value, 10);
+// Main page component (async server component)
+export default async function LogPage() {
+  const initialPage = 1;
+  const initialLinesPerPage = 10;
+  const initialLogs = await fetchLogs(initialPage, initialLinesPerPage);
 
-    if (isNaN(intified) || intified <= 0) {
-      setLinesPerPage(fallback);
-    } else {
-      setLinesPerPage(intified);
-    }
-  }
-
-  return (
-    <Container>
-      <Row>
-        <Col>
-          <Button variant="primary" onClick={prevPage}>
-            previous page
-          </Button>
-        </Col>
-        <Col>
-          <label>
-            Items per page
-            <input
-              name="Lines per page"
-              type="number"
-              min="1"
-              max="20"
-              defaultValue="10"
-              onChange={updateLinesPerPage}
-            />
-          </label>
-        </Col>
-        <Col>
-          <Button variant="primary" onClick={nextPage}>
-            next page
-          </Button>
-        </Col>
-      </Row>
-      <Row>
-        <Col>
-          <Table striped bordered hover>
-            {generateHeader(logData)}
-            <tbody>
-              {logData.map((logDataRow) => (
-                <LogEntry key={logDataRow.id} data={logDataRow} />
-              ))}
-            </tbody>
-          </Table>
-        </Col>
-      </Row>
-      <Row>
-        <Col>
-          <p>Page: {currentPage + 1}</p>
-        </Col>
-      </Row>
-    </Container>
-  );
-};
-
-export default Log;
+  // Pass initial data to client component and pass it the server-side callback function to update the logs during pagination
+  return <LogTableClient fetchLogsCallback={fetchLogs} initialLogs={initialLogs} initialPage={initialPage} initialLinesPerPage={initialLinesPerPage} />;
+}
