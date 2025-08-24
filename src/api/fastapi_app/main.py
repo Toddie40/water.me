@@ -1,13 +1,18 @@
 from fastapi import FastAPI
 
-from .routers import control, status, plant
+from .routers import control, status, plant, log
+
+from .middleware import LoggingMiddleware, log_function
 
 app = FastAPI()
+
+app.add_middleware(LoggingMiddleware, log_function=log_function)
 
 # api endpoints for controlling the plant waterer
 app.include_router(control.router)
 app.include_router(status.router)
 app.include_router(plant.router)
+app.include_router(log.router)
 
 # api endpoints for reading the status of the plant waterer
 # app.include_router(status.router)
