@@ -1,3 +1,5 @@
+'use server'
+
 import axios from 'axios';
 import './Status.css';
 import PlantStatusItem from '@/app/components/status/PlantStatusItem';
@@ -12,7 +14,7 @@ export default async function StatusPage() {
 
   try {
     // Use the internal hostname if needed e.g. "http://api:8000/status" inside Docker
-    const res = await axios.get<StatusData>("http://localhost:8000/status");
+    const res = await axios.get<StatusData>(`${process.env.API_ENDPOINT}/status`);
     statusData = res.data.result;
   } catch (err: any) {
     error = err.message || 'Unknown error';
