@@ -1,7 +1,6 @@
 # This file contains the api routes for endpoints which get status information from the plant waterer.
 import datetime
 from fastapi import APIRouter, Request
-from ..log import log, LogEntry
 import json
 
 router = APIRouter()
@@ -37,18 +36,7 @@ async def get_all_status(request: Request):
             req_body = await request.json()
         except Exception:
             req_body = '{}'
-
-        log_entry = LogEntry(
-              timestamp=datetime.datetime.now(),
-              endpoint='/status',
-              method='GET',
-              request_body=req_body,
-              response_status=200,
-              response_body=json.dumps(res),
-              client_ip=request.client.host
-        )
-        log(log_entry)
-
+            
         return res
 
 
