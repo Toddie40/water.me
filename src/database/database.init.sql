@@ -43,7 +43,6 @@ CREATE TABLE IF NOT EXISTS log (
     method TEXT NOT NULL,
     request_body TEXT NOT NULL,
     response_status INT NOT NULL,
-    response_body TEXT NOT NULL,
     client_ip TEXT NOT NULL
 )
 
