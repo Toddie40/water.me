@@ -1,7 +1,7 @@
 # This file contains the api routes for endpoints which get status information from the plant waterer.
 from fastapi import APIRouter, Request, Form, UploadFile, File, HTTPException
 
-from typing import Annotated, List
+from typing import Annotated, List, Optional
 from pydantic import BaseModel
 
 from ..utils.db_conf import database_connection
@@ -26,29 +26,30 @@ async def add_plant(
     name: Annotated[str, Form()],
     description: Annotated[str, Form()],
     moisture_threshold: Annotated[float, Form()],
-    image: Annotated[UploadFile, File()],
+    image: Optional[Annotated[UploadFile, File()]] = None
 ):
     plant = Plant(name=name, description=description, moisture_threshold=moisture_threshold)
 
     # first parse the file object
     allowed_types = {"image/jpeg", "image/png"}
-    if image.content_type not in allowed_types:
-        raise HTTPException(status_code=400, detail="Unsupported file type")
-    
-    image_file_bytes = await image.read() # this should be a bytes array
-    
-    try:
-        img = Image.open(io.BytesIO(image_file_bytes))
-        img.thumbnail((128,128)) # resize image in place (dont need to save the raw image)
+    if image:
+        if image.content_type not in allowed_types:
+            raise HTTPException(status_code=400, detail="Unsupported file type")
         
-        # Bytes buffer to save to
-        buf = io.BytesIO()
-        # Save the image in PNG format into the buffer
-        img.save(buf, format="PNG")
-        thumbnail_bytes = buf.getvalue()
+        image_file_bytes = await image.read() # this should be a bytes array
+        
+        try:
+            img = Image.open(io.BytesIO(image_file_bytes))
+            img.thumbnail((128,128)) # resize image in place (dont need to save the raw image)
+            
+            # Bytes buffer to save to
+            buf = io.BytesIO()
+            # Save the image in PNG format into the buffer
+            img.save(buf, format="PNG")
+            thumbnail_bytes = buf.getvalue()
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Unable to parse image object. Error: {e}")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Unable to parse image object. Error: {e}")
 
     # if we get this far then we should have a working Image object to save.
     with database_connection() as conn:
@@ -60,17 +61,32 @@ async def add_plant(
                 raise HTTPException(status_code=409, detail="Plant with that name already exists")
 
             # database sql command:
-            query = """
-            INSERT INTO plants (name, description, moisture_threshold, image)
-            VALUES (%(name)s, %(description)s, %(moisture_threshold)s, %(image)s);
-            """
+            if image:
+                query = """
+                INSERT INTO plants (name, description, moisture_threshold, image)
+                VALUES (%(name)s, %(description)s, %(moisture_threshold)s, %(image)s);
+                """
+
+                values = {
+                        'name':plant.name,
+                        'description': plant.description,
+                        'moisture_threshold': plant.moisture_threshold,
+                        'image': Binary(thumbnail_bytes) # wrap binary in psycopg2 binary format to ensure comaptibilty with postgres
+                    }
+            else:
+                query = """
+                INSERT INTO plants (name, description, moisture_threshold)
+                VALUES (%(name)s, %(description)s, %(moisture_threshold)s);
+                """
+
+                values = {
+                        'name':plant.name,
+                        'description': plant.description,
+                        'moisture_threshold': plant.moisture_threshold
+                    }
+
             try:
-                curs.execute(query, {
-                    'name':plant.name,
-                    'description': plant.description,
-                    'moisture_threshold': plant.moisture_threshold,
-                    'image': Binary(thumbnail_bytes) # wrap binary in psycopg2 binary format to ensure comaptibilty with postgres
-                })
+                curs.execute(query, values)
                 conn.commit()
             except IntegrityError as e:
                 # Check if the error is due to a duplicate plant name.
