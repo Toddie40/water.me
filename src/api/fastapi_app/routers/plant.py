@@ -5,10 +5,10 @@ from typing import Annotated, List
 from pydantic import BaseModel
 
 from ..utils.db_conf import database_connection
+
 from PIL import Image
 import io
 from psycopg2 import Binary, IntegrityError
-from psycopg2.errors import UniqueViolation
 
 router = APIRouter()
 
@@ -27,7 +27,6 @@ async def add_plant(
     description: Annotated[str, Form()],
     moisture_threshold: Annotated[float, Form()],
     image: Annotated[UploadFile, File()],
-    request: Request
 ):
     plant = Plant(name=name, description=description, moisture_threshold=moisture_threshold)
 
@@ -118,9 +117,6 @@ async def get_all_plants():
             """
             curs.execute(query)
             rows = curs.fetchall()  # Fetch all rows
-
-            if not rows:  # Empty list check
-                raise HTTPException(status_code=404, detail="No plants found")
 
             plants_list = [
                 Plant(
