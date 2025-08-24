@@ -2,31 +2,6 @@ name: plant-waterer
 version: '3.8'
 
 services:
-  frontend:
-    container_name: frontend
-    build:
-      context: ./src/frontend
-      dockerfile: Dockerfile
-    ports:
-      - "80:3000"
-    networks:
-      - plant-network
-
-
-  api:
-    container_name: api
-    build:
-      context: ./src/api
-      dockerfile: Dockerfile
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: plant_waterer
-    ports:
-      - "8000:8000"
-    networks:
-      - plant-network
-
 
   database:
     container_name: database
@@ -45,6 +20,35 @@ services:
     networks:
       - plant-network
 
+  api:
+    container_name: api
+    build:
+      context: ./src/api
+      dockerfile: Dockerfile
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: plant_waterer
+    ports:
+      - "8000:8000"
+    networks:
+      - plant-network
+    depends_on:
+      - database
+
+  frontend:
+    container_name: frontend
+    build:
+      context: ./src/frontend
+      dockerfile: Dockerfile
+    environment:
+      API_ENDPOINT: http://api:8000
+    ports:
+      - "80:3000"
+    networks:
+      - plant-network
+    depends_on:
+      - api
 
 networks:
   plant-network:
