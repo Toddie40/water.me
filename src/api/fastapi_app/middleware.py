@@ -3,6 +3,7 @@ from fastapi import Request, Response
 from .utils.db_conf import database_connection
 import datetime
 from starlette.middleware.base import BaseHTTPMiddleware
+import json
 
 # this is the middleware that will intercept any api requests and log them to the db for us.
 class LoggingMiddleware(BaseHTTPMiddleware):
@@ -19,8 +20,9 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         
         response = await call_next(request)
         
-        # Pass the cached body to the log function
-        await self.log(request, response, body)
+        # don't log the log requests. It gets a bit silly. Especially since this endpoint gets hammered by the log frontend component.
+        if request.url.path != '/log':
+            await self.log(request, response, body)
         
         return response
 
@@ -43,8 +45,8 @@ async def async_lambda(body):
 
 async def log_function(request: Request, response: Response, body: bytes):
     query = """
-    INSERT INTO log (timestamp, endpoint, method, request_body, response_status, client_ip)
-    VALUES (%(timestamp)s, %(endpoint)s, %(method)s, %(request_body)s, %(response_status)s, %(client_ip)s);
+    INSERT INTO log (timestamp, endpoint, method, query_params, request_body, response_status, client_ip)
+    VALUES (%(timestamp)s, %(endpoint)s, %(method)s, %(query_params)s, %(request_body)s, %(response_status)s, %(client_ip)s);
     """
 
     try:
@@ -56,6 +58,7 @@ async def log_function(request: Request, response: Response, body: bytes):
                         'timestamp': datetime.datetime.now(),
                         'endpoint': request.url.path,
                         'method': request.method,
+                        'query_params': json.dumps(request.query_params.multi_items()),
                         'request_body': body.decode("utf-8", errors="replace"),  # decode for storage, optional
                         'response_status': response.status_code,
                         'client_ip': request.client.host if request.client else None,

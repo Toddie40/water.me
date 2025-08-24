@@ -3,19 +3,11 @@
 import { useState, useEffect, type ChangeEvent, type JSX } from 'react';
 import LogEntry from './LogEntry';
 import { Table, Button, Container, Row, Col } from 'react-bootstrap';
+import { LogResponse, LogRow } from '@/app/interfaces/log';
 
-interface LogData {
-    items: LogRow[],
-    total: number
-}
-
-interface LogRow {
-  id: string | number;
-  [key: string]: any;
-}
 
 interface LogTableClientProps {
-  initialLogs: LogData;
+  initialLogs: LogResponse;
   initialPage: number;
   initialLinesPerPage: number;
   fetchLogsCallback: Function;
@@ -42,24 +34,20 @@ export default function LogTableClient({
   initialLinesPerPage,
   fetchLogsCallback
 }: LogTableClientProps): JSX.Element {
-  const [logData, setLogData] = useState<LogData>(initialLogs);
+  const [logData, setLogData] = useState<LogResponse>(initialLogs);
   const [currentPage, setCurrentPage] = useState<number>(initialPage);
   const [linesPerPage, setLinesPerPage] = useState<number>(initialLinesPerPage);
-  const [loading, setLoading] = useState<boolean>(false);
   const [maxPage, setMaxPage] = useState<number>(Math.ceil(initialLogs.total/initialLinesPerPage))
 
   useEffect(() => {
     // Fetch new logs on page or linesPerPage change
     async function loadLogs() {
-      setLoading(true);
       try {
         const data = await fetchLogsCallback(currentPage, linesPerPage);
         setLogData(data);
       } catch (error) {
         console.error("Failed to fetch logs:", error);
         setLogData({items:[], total:0});
-      } finally {
-        setLoading(false);
       }
     }
 
@@ -121,9 +109,7 @@ export default function LogTableClient({
       </Row>
       <Row>
         <Col>
-          {loading ? (
-            <p>Loading logs...</p>
-          ) : logData.items.length === 0 ? (
+          {logData.items.length === 0 ? (
             <p>No logs found.</p>
           ) : (
             <Table striped bordered hover>

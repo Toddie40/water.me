@@ -1,22 +1,14 @@
 // app/log/page.tsx  (server component, no 'use client')
 import LogTableClient from './LogTableClient';
 import axios from 'axios';
+import { LogResponse } from '@/app/interfaces/log';
 
-interface LogRow {
-  id: string | number;
-  [key: string]: any;
-}
-
-interface LogResponse {
-  items: LogRow[];
-  total: number;
-}
 
 // serverside function to fetch the logs from the fastAPI container
 async function fetchLogs(pageNumber: number, linesPerPage: number): Promise<LogResponse> {
   'use server'
   try {
-    const response = await axios.get<LogResponse>("http://api:8000/log", {
+    const response = await axios.get<LogResponse>(`${process.env.API_ENDPOINT}/log`, {
       params: {
         lines_per_page: linesPerPage,
         page_no: pageNumber,

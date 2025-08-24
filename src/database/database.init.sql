@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS log (
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     endpoint TEXT NOT NULL,
     method TEXT NOT NULL,
+    query_params TEXT NOT NULL,
     request_body TEXT NOT NULL,
     response_status INT NOT NULL,
     client_ip TEXT NOT NULL

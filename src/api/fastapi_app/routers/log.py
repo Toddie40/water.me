@@ -9,6 +9,7 @@ class LogItem(BaseModel):
     timestamp: datetime
     endpoint: str
     method: str
+    query_params: str
     request_body: str
     response_status: int
     client_ip: str
@@ -26,7 +27,7 @@ def get_logs(lines_per_page: int, page_no: int):
     # return the latest logs according to the line per page and the current page no
     # logs are returned in reverse chronological order for the time being. 
     query = f"""
-    SELECT id, timestamp, endpoint, method, request_body, response_status, client_ip
+    SELECT id, timestamp, endpoint, method, query_params, request_body, response_status, client_ip
     FROM log
     ORDER BY timestamp DESC
     LIMIT {lines_per_page}
@@ -44,9 +45,10 @@ def get_logs(lines_per_page: int, page_no: int):
                     timestamp = row[1],
                     endpoint = row[2],
                     method = row[3],
-                    request_body = row[4],
-                    response_status = row[5],
-                    client_ip = row[6]
+                    query_params = row[4],
+                    request_body = row[5],
+                    response_status = row[6],
+                    client_ip = row[7]
                 ) for row in rows]
 
                 # get total log count to send with response for pagination
