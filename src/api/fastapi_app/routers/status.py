@@ -30,13 +30,6 @@ async def get_all_status(request: Request):
     },
     {}
     ]}
-        # log request
-        try:
-            # Try to load the body if present (GET requests often have no body)
-            req_body = await request.json()
-        except Exception:
-            req_body = '{}'
-            
         return res
 
 
