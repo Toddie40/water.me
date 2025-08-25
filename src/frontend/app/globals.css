@@ -13,10 +13,6 @@ body {
   min-height: 100vh;
 }
 
-.navbar {
-  background-color: var(--moss-green);
-}
-
 .fullPageContent {
   background-color: var(--earth-taupe);
   max-width: 1280px;
@@ -40,26 +36,4 @@ body {
   font-weight: light;
   text-align: left;
   font-size: 2rem;
-}
-
-.plantPropertyPropsCol {
-  font-weight: bold;
-}
-
-.plantPropertyLine {
-  text-align: left;
-  margin-bottom: .25rem;
-}
-
-.plantPropertiesCol {
-  background-color: var(--rich-soil-brown);
-  padding: 1rem;
-    border-radius: 1rem;
-}
-
-.plantPropertiesMain {
-  padding: 1rem;
-  background-color: var(--earth-taupe);
-  color: white;
-    border-radius: 1rem;
 }
