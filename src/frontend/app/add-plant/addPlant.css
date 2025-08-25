@@ -1,0 +1,14 @@
+.addPlant {
+    margin-top: 2rem;
+    justify-content: center; /* centers horizontally */
+    align-items: center;     /* centers vertically */
+    max-width: 720px;
+}
+
+.addPlantFormGroup {
+    margin-bottom: 1rem;
+}
+
+.addPlantFailure {
+    color: red
+}

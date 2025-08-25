@@ -4,6 +4,8 @@ import { useState } from "react"
 import SearchInput from "./SearchInput";
 import LibraryList from "./LibraryList";
 
+import './plantLibrary.css'
+
 import { Plant, PlantsList } from "@/app/interfaces/plant";
 
 interface PlantLibraryProps {
@@ -16,7 +18,6 @@ export default function PlantLibrary({plantsData}: PlantLibraryProps) {
     return (
         <div>
             <SearchInput searchCallback={setSearchTerm}/>
-            <div>{searchTerm}</div>
             <LibraryList plantsData={plantsData} searchTerm={searchTerm} />
         </div>
     )

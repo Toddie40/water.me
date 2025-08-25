@@ -16,7 +16,7 @@ export default function SearchInput({searchCallback}: SearchInputProps) {
         aria-describedby="searchHelp"
         />
       <Form.Text id="searchHelp" muted>
-        Search is case sensitive because im lazy. Sorry I couldnt' be arsed to faff about.
+        Search is case insensitive. Nice 'eh?
       </Form.Text>
     </>
   );
