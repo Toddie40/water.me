@@ -4,12 +4,13 @@ import { Form, Button, Container, Row, Col } from "react-bootstrap";
 import { Plant } from "../interfaces/plant";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { AxiosError } from "axios";
 
 type AddPlantProps = {callback: Function}
 
 export default function AddPlant({callback}:AddPlantProps) {
     const [formSubmitted, setFormSubmitted] = useState(false)
-    const [addPlantFailure, setAddPlantFailure] = useState(null)
+    const [addPlantFailure, setAddPlantFailure] = useState('')
     const [moistureInputValue, setMoistureInputValue] = useState(1.2);
     
     const router = useRouter();
@@ -31,20 +32,25 @@ export default function AddPlant({callback}:AddPlantProps) {
             plantData.image = imageInput.files[0];
         }
 
-        try {
-            callback(plantData)
-            router.push('/library')
-        }
-        catch (error) {
-            setAddPlantFailure(error)
-        }
+        callback(plantData)
+            .then((status: number) => {
+                if (status === 200) {
+                    router.push('/library');
+                } else {
+                    throw new Error("Unexpected status code: " + status);
+                }
+            })
+            .catch((error: Error) => {
+                setAddPlantFailure(error.message);
+            });
+        
     }
 
     return (
         <Container className="addPlant">
             <Row>
                 <Col xs={12} md={12} lg={12}>
-                    <Form onSubmit={handleSubmit}>
+                    <Form onSubmit={handleSubmit} onChange={() => {setAddPlantFailure('')}}>
                         <Form.Group className="addPlantFormGroup">
                         <Form.Control name="plantName" type="text" placeholder="Plant Name"/>
                         </Form.Group>
