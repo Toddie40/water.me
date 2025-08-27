@@ -7,7 +7,10 @@ CREATE TABLE IF NOT EXISTS plants (
     name VARCHAR(255) PRIMARY KEY,
     description TEXT NOT NULL,
     moisture_threshold FLOAT NOT NULL DEFAULT 1.5,
-    image BYTEA
+    image BYTEA,
+    CONSTRAINT name_alphanumeric CHECK (name ~ '[a-zA-Z0-9]' AND name ~ '^[a-zA-Z0-9 ]+$'),-- check name contains only alphanumeric characters and spaces but also must contain at least one alphanumeric character
+    CONSTRAINT description_alphanumeric CHECK (description ~ '[a-zA-Z0-9]' AND description ~ '^[a-zA-Z0-9 .,!?''"\-]+$'),
+    CONSTRAINT moisture_threshold_range CHECK (moisture_threshold >= 0.0 AND moisture_threshold <= 3.3)
 );
 
 
