@@ -6,7 +6,7 @@ import LibraryList from "./LibraryList";
 
 import './plantLibrary.css'
 
-import { Plant, PlantsList } from "@/app/interfaces/plant";
+import { PlantsList } from "@/app/interfaces/plant";
 
 interface PlantLibraryProps {
   plantsData: PlantsList

@@ -1,15 +1,17 @@
-import { Plant, PlantsList } from '@/app/interfaces/plant'
-import { Button } from 'react-bootstrap';
+// React imports
 import { useRouter } from 'next/navigation';
-
 import Accordion from 'react-bootstrap/Accordion';
+
+// Interfaces
+import { Plant, PlantsList } from '@/app/interfaces/plant'
+
+// Custom Components
+import PlantLibraryItem from './PlantLibraryItem';
 
 interface LibraryListProps {
     plantsData: PlantsList
     searchTerm: string
 }
-
-
 
 export default function LibraryList({plantsData, searchTerm}: LibraryListProps) {
     // manipulate the plantsData object using the search term
@@ -31,15 +33,7 @@ export default function LibraryList({plantsData, searchTerm}: LibraryListProps) 
                         Add new plant
                 </Accordion.Item>
                 {filteredData.map((plant: Plant, index: number) => (
-                    <Accordion.Item key={index} eventKey={String(index)}>
-                        <Accordion.Header>{plant.name}</Accordion.Header>
-                        <Accordion.Body>
-                            <p className='plantDescriptionText'>{plant.description}</p>
-                            <p>Threshold: {plant.moisture_threshold}</p>
-                            <Button variant='danger'>Delete</Button>
-                            <Button>Edit</Button>
-                        </Accordion.Body>
-                    </Accordion.Item>
+                    <PlantLibraryItem key={index} plant={plant} index={index}/>
                 ))}
             </Accordion>
         </div>
