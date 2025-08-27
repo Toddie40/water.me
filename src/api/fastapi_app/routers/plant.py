@@ -1,5 +1,5 @@
 # This file contains the api routes for endpoints which get status information from the plant waterer.
-from fastapi import APIRouter, Request, Form, UploadFile, File, HTTPException
+from fastapi import APIRouter, Request, Form, UploadFile, File, HTTPException, Response
 
 from typing import Annotated, List, Optional
 from pydantic import BaseModel, validator
@@ -8,7 +8,7 @@ from ..utils.db_conf import database_connection
 
 from PIL import Image
 import io
-from psycopg2 import Binary, IntegrityError
+from psycopg2 import Binary, IntegrityError, OperationalError
 
 router = APIRouter()
 
@@ -27,6 +27,9 @@ class Plant(BaseModel):
 class Plants(BaseModel):
     plants: List[Plant]
 
+class BasicResponse(BaseModel):
+    message: str
+
 @router.post("/plant/add", response_model=Plant)
 async def add_plant(
     name: Annotated[str, Form()],
@@ -42,6 +45,7 @@ async def add_plant(
 
     # first parse the file object
     allowed_types = {"image/jpeg", "image/png"}
+
     if image:
         if image.content_type not in allowed_types:
             raise HTTPException(status_code=400, detail="Unsupported file type")
@@ -110,11 +114,8 @@ async def add_plant(
     # Construct and return the PlantOut object with the generated id
     return Plant(name=plant.name, description=plant.description, moisture_threshold=plant.moisture_threshold)
 
-    
-
-
 @router.get("/plant/get", response_model=Plant)
-async def get_plant(plant_name: str, request: Request):
+async def get_plant(plant_name: str):
     with database_connection() as conn:
         with conn.cursor() as curs:
             query = """
@@ -132,7 +133,27 @@ async def get_plant(plant_name: str, request: Request):
                 description=row[1],
                 moisture_threshold=row[2]
             )
-        
+
+@router.delete("/plant/delete")
+async def delete_plant(plant_name: str):
+    with database_connection() as conn:
+        with conn.cursor() as curs:
+            query = """
+            DELETE FROM plants
+            WHERE name = %(name)s
+            RETURNING name
+            """
+            curs.execute(query, {'name': plant_name})
+            row = curs.fetchone()
+
+            # if we don't return anything, then we didn't delete anything. this means that the plant wasn't in the db so we tell the consumer as much.
+            if row is None:
+                raise HTTPException(status_code=404, detail="Plant not found")            
+            
+            # if we reach this point we must have deleted the plant
+            conn.commit()
+            return BasicResponse(message=f"Plant {plant_name} successfully deleted")
+
 @router.get("/plant/get/all")
 async def get_all_plants():
     # return a json object of a list of Plant models
@@ -153,3 +174,26 @@ async def get_all_plants():
             ]
 
             return Plants(plants=plants_list)
+        
+@router.get("/plant/get/image/{plantName}")
+def getPlantImage(plantName: str):
+    # get plant image from database
+    try:
+        with database_connection() as conn:
+            with conn.cursor() as curs:
+                curs.execute(f"SELECT image FROM plants WHERE name = %s", (plantName,))
+                row = curs.fetchone()
+                # Check the query returned a row. If it didn't then a plant with this name doesn't exist.
+                if row is None:
+                    raise HTTPException(status_code=404, detail="Plant not found.")
+                image_bytes = row[0]
+
+                # have got response from db, but should check if this plant actually has an image stored in the db
+                if image_bytes == None:
+                    raise HTTPException(status_code=404, detail="No image available for this plant")
+                
+                # we've confirmed we have an image for this plant so we return it as a png file
+                return Response(content=image_bytes, media_type="image/png")
+
+    except OperationalError as e:
+        raise HTTPException(status_code=500, detail="Unable to access database.")
