@@ -3,7 +3,7 @@
 import axios from "axios";
 
 export async function deletePlant(plantName: string) {
-    var res = await axios.delete(`${process.env.API_ENDPOINT}/plant/delete`, {params: {plant_name: plantName}});
+    var res = await axios.delete(`${process.env.API_ENDPOINT}/plants/${plantName}`);
     return res.status
 }
 

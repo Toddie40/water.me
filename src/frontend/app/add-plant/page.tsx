@@ -18,7 +18,7 @@ async function addPlant(plantData: Plant) {
         payload.append('image', plantData.image);
     }
 
-    const {status} = await axios.post(`${process.env.API_ENDPOINT}/plant/add`, payload, {
+    const {status} = await axios.post(`${process.env.API_ENDPOINT}/plants`, payload, {
         headers: {
         'Content-Type': 'multipart/form-data'
         }

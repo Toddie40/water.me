@@ -1,4 +1,4 @@
-# Plant Waterer
+# Water.me
 
 Repository for an automatic plant waterer with the raspberry pi.
 

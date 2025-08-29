@@ -5,7 +5,7 @@ import json
 
 router = APIRouter()
 
-@router.get("/status")
+@router.get("/status", tags=['Status'])
 async def get_all_status(request: Request):
         res = { "result" : [
     {   
@@ -33,7 +33,7 @@ async def get_all_status(request: Request):
         return res
 
 
-@router.get("/status/{plant_index}")
+@router.get("/status/{plant_index}", tags=['Status'])
 def get_plant_status(plant_index: int):
     return {
         "status": "success",

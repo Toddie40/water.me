@@ -8,7 +8,7 @@ export async function GET(request: Request) {
 
   try {
     // Get the image as binary data
-    const res = await axios.get(`${process.env.API_ENDPOINT}/plant/get/image/${plantName}`, {
+    const res = await axios.get(`${process.env.API_ENDPOINT}/plants/images/${plantName}`, {
       responseType: 'arraybuffer',
     });
 

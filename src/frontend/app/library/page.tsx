@@ -4,7 +4,7 @@ import PlantLibrary from "../components/plantLibrary/PlantLibrary";
 import { PlantsList } from "../interfaces/plant";
 
 async function getPlants(): Promise<PlantsList> {
-  const response = await axios.get<PlantsList>(`${process.env.API_ENDPOINT}/plant/get/all`);
+  const response = await axios.get<PlantsList>(`${process.env.API_ENDPOINT}/plants`);
   return response.data;
 }
 

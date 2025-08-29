@@ -1,8 +1,7 @@
 # This file contains the api routes for endpoints which get status information from the plant waterer.
-from fastapi import APIRouter, Request, Form, UploadFile, File, HTTPException, Response
+from fastapi import APIRouter, HTTPException, Response, Form, File, UploadFile
 
-from typing import Annotated, List, Optional
-from pydantic import BaseModel, validator
+from ..models.plants import BasicResponse, Plant, Plants, AddPlantRequest
 
 from ..utils.db_conf import database_connection
 
@@ -12,45 +11,30 @@ from psycopg2 import Binary, IntegrityError, OperationalError
 
 router = APIRouter()
 
-class Plant(BaseModel):
-    name: str
-    description: str
-    moisture_threshold: float
-
-    @validator('name')
-    def name_not_empty(cls, v):
-        if not v.strip():
-            raise ValueError('Name cannot be empty')
-        return v
-    # Will need to check for the image too, but that will happen in the function logic
-
-class Plants(BaseModel):
-    plants: List[Plant]
-
-class BasicResponse(BaseModel):
-    message: str
-
-@router.post("/plant/add", response_model=Plant)
+@router.post("/plants", response_model=Plant, status_code=201, tags=['Plants'])
 async def add_plant(
-    name: Annotated[str, Form()],
-    description: Annotated[str, Form()],
-    moisture_threshold: Annotated[float, Form()],
-    image: Optional[Annotated[UploadFile, File()]] = None
+    name: str = Form(...),
+    description: str = Form(...),
+    moisture_threshold: float = Form(...),
+    image: UploadFile = File(None)
 ):
-    try:
-        plant = Plant(name=name, description=description, moisture_threshold=moisture_threshold)
-    except ValueError as e:
-        # Rasie the HTTP Excpetion with the right code for unprocessable content. FastAPI should do this itself but it isn't and I cannot work out why so here we are...
-        raise HTTPException(status_code=422, detail=f"Name cannot be empty: {e}")
+    # annoyingly due to FastAPI limitations, we can't use a Pydantic model to define the input when it is of type: form/multipart.
+    # To maintain the validation, we use the fields from the request to immediately try to build the request model
+    # if this fails, it will raise the ValidationError that FastAPI knows what to do with.
+    plant = AddPlantRequest(
+        name=name,
+        description=description,
+        moisture_threshold=moisture_threshold,
+        image=image
+    )
 
-    # first parse the file object
     allowed_types = {"image/jpeg", "image/png"}
-
-    if image:
-        if image.content_type not in allowed_types:
+    
+    if plant.image:
+        if plant.image.content_type not in allowed_types:
             raise HTTPException(status_code=400, detail="Unsupported file type")
         
-        image_file_bytes = await image.read() # this should be a bytes array
+        image_file_bytes = await plant.image.read() # this should be a bytes array
         
         try:
             img = Image.open(io.BytesIO(image_file_bytes))
@@ -75,7 +59,7 @@ async def add_plant(
                 raise HTTPException(status_code=409, detail="Plant with that name already exists")
 
             # database sql command:
-            if image:
+            if plant.image:
                 query = """
                 INSERT INTO plants (name, description, moisture_threshold, image)
                 VALUES (%(name)s, %(description)s, %(moisture_threshold)s, %(image)s);
@@ -114,12 +98,12 @@ async def add_plant(
     # Construct and return the PlantOut object with the generated id
     return Plant(name=plant.name, description=plant.description, moisture_threshold=plant.moisture_threshold)
 
-@router.get("/plant/get", response_model=Plant)
+@router.get("/plants/{plant_name}", response_model=Plant, tags=['Plants'])
 async def get_plant(plant_name: str):
     with database_connection() as conn:
         with conn.cursor() as curs:
             query = """
-            SELECT name, description, moisture_threshold
+            SELECT name, description, moisture_threshold, image
             FROM plants
             WHERE name = %(name)s
             """
@@ -127,14 +111,16 @@ async def get_plant(plant_name: str):
             row = curs.fetchone()
             if row is None:
                 raise HTTPException(status_code=404, detail="Plant not found")
+            img_path = f"/plants/image/{plant_name}" if row[3] != None else None
             # Create a Plant object from the database row
             return Plant(        
                 name=row[0],
                 description=row[1],
-                moisture_threshold=row[2]
+                moisture_threshold=row[2],
+                image = img_path
             )
 
-@router.delete("/plant/delete")
+@router.delete("/plants/{plant_name}", tags=['Plants'])
 async def delete_plant(plant_name: str):
     with database_connection() as conn:
         with conn.cursor() as curs:
@@ -154,7 +140,7 @@ async def delete_plant(plant_name: str):
             conn.commit()
             return BasicResponse(message=f"Plant {plant_name} successfully deleted")
 
-@router.get("/plant/get/all")
+@router.get("/plants", tags=['Plants'])
 async def get_all_plants():
     # return a json object of a list of Plant models
     with database_connection() as conn:
@@ -164,18 +150,22 @@ async def get_all_plants():
             """
             curs.execute(query)
             rows = curs.fetchall()  # Fetch all rows
+            
+            #  construct plants list
+            plants_list = []
 
-            plants_list = [
-                Plant(
+            for row in rows:
+                img_path = f'/plants/image/{row[0]}' if row[3]!= None else None
+                plants_list.append(Plant(
                     name=row[0],
                     description=row[1],
-                    moisture_threshold=row[2]
-                ) for row in rows
-            ]
+                    moisture_threshold=row[2],
+                    image=img_path
+                ))    
 
             return Plants(plants=plants_list)
         
-@router.get("/plant/get/image/{plantName}")
+@router.get("/plants/images/{plantName}", tags=['Plants'])
 def getPlantImage(plantName: str):
     # get plant image from database
     try:
