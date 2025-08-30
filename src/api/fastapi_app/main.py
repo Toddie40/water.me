@@ -17,7 +17,7 @@ app.include_router(log.router)
 # api endpoints for reading the status of the plant waterer
 # app.include_router(status.router)
 
-@app.get("/")
+@app.get("/", tags=['Health Check'])
 async def root():
     return {
         "message": "plant_waterer_api",
