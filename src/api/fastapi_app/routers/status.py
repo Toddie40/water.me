@@ -1,45 +1,74 @@
 # This file contains the api routes for endpoints which get status information from the plant waterer.
-import datetime
-from fastapi import APIRouter, Request
-import json
+from fastapi import APIRouter, Request, HTTPException
+from ..models.status import AddSlotRequest, StatusList, StatusItem
+from ..models.plants import BasicResponse
+from ..utils.db_conf import database_connection
 
 router = APIRouter()
 
-@router.get("/status", tags=['Status'])
-async def get_all_status(request: Request):
-        res = { "result" : [
-    {   
-        "image" : "data:image/jpeg;base64,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",
-        "id" : 2,
-        "name" : "monstera",
-        "description" : "Also called a cheese plant, the monstera is a tropical plant with large holey leaves",
-        "moisture" : "0.3",
-        "threshold" : "1.3",
-        "lastWatered" : "2025-08-16|13:28:34.005",
-        "autoWater" : "true"
-    },
-    {
-        "image" : "data:image/jpeg;base64,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",
-        "id" : 23,
-        "name" : "Fiddle Leaf Fig",
-        "description" : "A ficus with large leaves",
-        "moisture" : "1.2",
-        "threshold" : "2.0",
-        "lastWatered" : "2025-08-16|13:28:34.005",
-        "autoWater" : "false"
-    },
-    {}
-    ]}
-        return res
+@router.get("/status", response_model=StatusList, tags=['Status'])
+async def get_all_status():
+    try:
+        with database_connection() as conn:
+            with conn.cursor() as curs:
+                slot_query = """
+SELECT 
+    watering_slots.slot_id, 
+    watering_slots.plant_name, 
+    watering_slots.last_watered, 
+    watering_slots.moisture_level, 
+    watering_slots.auto_water, 
+    plants.description, 
+    plants.moisture_threshold
+FROM watering_slots
+LEFT JOIN plants ON watering_slots.plant_name = plants.name;
+"""             
+                curs.execute(slot_query)
+                slots_information = curs.fetchall()
+                results_list = [StatusItem(
+                    slot=slot[0],
+                    name=slot[1],
+                    lastWatered=slot[2],
+                    moisture=slot[3],
+                    autoWater=slot[4],
+                    description=slot[5],
+                    threshold=slot[6],
+                    image=f'/plants/images/{slot[1]}') 
+                for slot in slots_information ]
 
+                return StatusList(result=results_list)
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Unable to access database. Error:{e}")        
 
-@router.get("/status/{plant_index}", tags=['Status'])
-def get_plant_status(plant_index: int):
+@router.get("/status/{slot_number}", tags=['Status'])
+def get_plant_status(slot_number: int):
     return {
         "status": "success",
-        "message": f"Retrieved status for plant: {plant_index}",
-        "plant_index": plant_index,
+        "message": f"Retrieved status for plant: {slot_number}",
+        "plant_index": slot_number,
         "moisture_level": 75,  # Placeholder value
-        "name": f"Plant {plant_index}"  # Placeholder name
+        "name": f"Plant <retrived plant name>"  # Placeholder name
     }
 
+@router.put("/status/{slot_number}/{plant_name}", tags=['Status'])
+def set_slot(add_slot_request: AddSlotRequest):
+    with database_connection() as conn:
+        with conn.cursor() as curs:
+            query = """
+INSERT INTO watering_slots (slot_id, plant_name, added_at)
+VALUES (%(slot_id)s, %(plant_name)s, DEFAULT)
+ON CONFLICT (slot_id) DO UPDATE
+SET plant_name = EXCLUDED.plant_name,
+    added_at = DEFAULT;
+"""
+            try:
+                curs.execute(query, {'plant_name': add_slot_request.plant_name, 'slot_id': add_slot_request.slot_number})
+                conn.commit()
+            except Exception as e:
+                # Check if the error is due to a duplicate plant name.
+                conn.rollback()      
+                raise HTTPException(status_code=500, detail=f"Database error: {e}") 
+    return BasicResponse(message=f"Successfully added plant: {add_slot_request.plant_name} to slot {add_slot_request.slot_number}")
+                
+    

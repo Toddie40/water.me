@@ -1,36 +1,24 @@
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, AfterValidator
 from typing import List, Optional, Union, Annotated
 from fastapi import UploadFile, Form, File
+from .validators import not_empty
 
-# Validator functions
-def not_empty(cls, v):
-        if not v.strip():
-            raise ValueError(f'{cls} cannot be empty')
-        return v
-
-
-# Pydantic models
+PlantName = Annotated[str, AfterValidator(not_empty)]
 
 class Plant(BaseModel):
-    name: str
+    name: PlantName
     description: str
     moisture_threshold: float
     image: Optional[bytes] = None
 
-    _check_name = validator('name', allow_reuse=True)(not_empty)
-    
-    # Will need to check for the image too, but that will happen in the function logic
-
 class AddPlantRequest(BaseModel):
-    name: Annotated[str, Form()]
+    name: Annotated[PlantName, Form()]
     description: Annotated[str, Form()]
     moisture_threshold: Annotated[float, Form()]
     image: Optional[Annotated[UploadFile, File()]] = None
 
-    _check_name = validator('name', allow_reuse=True)(not_empty)
-
 class PlantUpdateRequest(BaseModel):
-    name: str
+    name: PlantName
     description: Optional[str] = None
     moisture_threshold: Optional[float] = None
     image: Optional[bytes] = None
