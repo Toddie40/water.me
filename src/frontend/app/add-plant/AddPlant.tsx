@@ -4,7 +4,6 @@ import { Form, Button, Container, Row, Col } from "react-bootstrap";
 import { Plant } from "../interfaces/plant";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { AxiosError } from "axios";
 
 type AddPlantProps = {callback: Function}
 
@@ -34,7 +33,7 @@ export default function AddPlant({callback}:AddPlantProps) {
 
         callback(plantData)
             .then((status: number) => {
-                if (status === 200) {
+                if (status === 201) {
                     router.push('/library');
                 } else {
                     throw new Error("Unexpected status code: " + status);
