@@ -21,11 +21,12 @@ CREATE TABLE IF NOT EXISTS watering_slots (
     plant_name VARCHAR(255),
     last_watered TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     moisture_level FLOAT NOT NULL DEFAULT 0.0,
+    auto_water BOOLEAN NOT NULL DEFAULT false,
     added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (plant_name) REFERENCES plants(name)
 );
 
--- This tabl will store the history of plants in each index. 
+-- This tabl will store the history of plants in each indINSERT INTO watering_slots (plant_name) VALUES (NULL);ex. 
 -- As plants are swapped out for new ones in the 3 watering slots, we should keep 
 -- a history of the plants that have been in each slot. 
 -- We can then use that history when users swap plants out. They can search the list of previously used plants
