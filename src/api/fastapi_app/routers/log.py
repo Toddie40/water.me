@@ -1,11 +1,11 @@
 from fastapi import APIRouter, HTTPException
-from ..utils.db_conf import database_connection
-from ..models.log import Log, LogItem
-
+from sqlmodel import select
+from ..utils.db_conf import get_session
+from ..models.log import Log, LogResponse
 
 router = APIRouter()
 
-@router.get("/log", response_model=Log, tags=['Log'])
+@router.get("/log", response_model=LogResponse, tags=['Log'])
 def get_logs(lines_per_page: int, page_no: int):
 
     # return the latest logs according to the line per page and the current page no
@@ -18,28 +18,16 @@ def get_logs(lines_per_page: int, page_no: int):
     OFFSET {page_no - 1} * {lines_per_page};
     """
 
+    limit=lines_per_page
+    offset=(page_no - 1) * lines_per_page
+
     try:
-        with database_connection() as conn:
-            with conn.cursor() as curs:
-                curs.execute(query)
-                rows = curs.fetchall()
-                # creat reponse object
-                log_items = [LogItem(
-                    id = row[0],
-                    timestamp = row[1],
-                    endpoint = row[2],
-                    method = row[3],
-                    query_params = row[4],
-                    request_body = row[5],
-                    response_status = row[6],
-                    client_ip = row[7]
-                ) for row in rows]
+        with get_session() as session:
+            statement = select(Log).order_by(Log.timestamp.desc()).offset(offset).limit(limit)
+            log_items = session.exec(statement)
+            # get total log count to send with response for pagination
+            count = int(session.query(Log).count())
 
-                # get total log count to send with response for pagination
-                curs.execute("SELECT COUNT(*) FROM log;")
-                count_row = curs.fetchone()[0]  # fetchone since only one row expected
-                count = int(count_row) if count_row else 0
-
-                return Log(items = log_items, total = count)
+            return LogResponse(items = log_items, total = count)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Unable to access logs. Error: {e}")

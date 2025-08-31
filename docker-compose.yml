@@ -20,6 +20,7 @@ services:
     networks:
       - plant-network
 
+
   api:
     container_name: api
     build:
@@ -35,6 +36,7 @@ services:
       - plant-network
     depends_on:
       - database
+        
 
   frontend:
     container_name: frontend

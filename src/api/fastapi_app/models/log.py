@@ -1,9 +1,10 @@
+from sqlmodel import SQLModel, Field
 from pydantic import BaseModel
 from typing import List
 from datetime import datetime
 
-class LogItem(BaseModel):
-    id:int
+class Log(SQLModel, table=True):
+    id:int = Field(primary_key=True)
     timestamp: datetime
     endpoint: str
     method: str
@@ -12,6 +13,6 @@ class LogItem(BaseModel):
     response_status: int
     client_ip: str
 
-class Log(BaseModel):
-    items: List[LogItem]
+class LogResponse(BaseModel):
+    items: List[Log]
     total: int

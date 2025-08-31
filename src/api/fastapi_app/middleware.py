@@ -1,6 +1,7 @@
 # utility to hold the functions to log requests to the database
 from fastapi import Request, Response
-from .utils.db_conf import database_connection
+from .utils.db_conf import get_session
+from .models.log import Log
 import datetime
 from starlette.middleware.base import BaseHTTPMiddleware
 import json
@@ -14,7 +15,8 @@ class LoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         # Read the body before passing the request on
         body = await request.body()
-        
+        form = await request.form()
+
         # Create a new request with the cached body so downstream can read it again
         request = Request(request.scope, receive=async_lambda(body))
         
@@ -22,7 +24,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         
         # don't log the log requests. It gets a bit silly. Especially since this endpoint gets hammered by the log frontend component.
         if request.url.path != '/log':
-            await self.log(request, response, body)
+            await self.log(request, response, body, form)
         
         return response
 
@@ -43,27 +45,42 @@ async def async_lambda(body):
     return receive
 
 
-async def log_function(request: Request, response: Response, body: bytes):
+async def log_function(request: Request, response: Response, body: bytes, form: bytes):
     query = """
     INSERT INTO log (timestamp, endpoint, method, query_params, request_body, response_status, client_ip)
     VALUES (%(timestamp)s, %(endpoint)s, %(method)s, %(query_params)s, %(request_body)s, %(response_status)s, %(client_ip)s);
     """
 
+    content_type = request.headers.get("content-type","")
+    print(f"received Content type: {content_type}")
+    if "multipart/form-data" in content_type:
+        print("Processing form data...")
+        filtered_data = {}
+
+        for key, value in form.items():
+            # Check if value is a file upload (starlette's UploadFile)
+            if hasattr(value, "filename") and value.filename:
+                filtered_data[key] = f"<{value.content_type} file excluded>"
+            else:
+                filtered_data[key] = value
+
+        request_body = json.dumps(filtered_data)
+    else:
+        request_body = body.decode("utf-8", errors="replace")
+
+    log = Log(
+        timestamp = datetime.datetime.now(),
+        endpoint = request.url.path,
+        method = request.method,
+        query_params = json.dumps(request.query_params.multi_items()),
+        request_body = request_body,  # decode for storage, optional
+        response_status = response.status_code,
+        client_ip = request.client.host if request.client else None,
+    )
+
     try:
-        with database_connection() as conn:
-            with conn.cursor() as curs:
-                curs.execute(
-                    query,
-                    {
-                        'timestamp': datetime.datetime.now(),
-                        'endpoint': request.url.path,
-                        'method': request.method,
-                        'query_params': json.dumps(request.query_params.multi_items()),
-                        'request_body': body.decode("utf-8", errors="replace"),  # decode for storage, optional
-                        'response_status': response.status_code,
-                        'client_ip': request.client.host if request.client else None,
-                    },
-                )
-            conn.commit()
+        with get_session() as session:
+            session.add(log)
+            session.commit()
     except Exception as e:
         print(f"error occurred making log entry: {e}")
