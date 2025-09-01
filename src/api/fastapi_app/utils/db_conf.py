@@ -5,23 +5,16 @@ from sqlalchemy.engine import Engine
 from sqlmodel import SQLModel, create_engine, Session
 from os import getenv
 
-POSTGRES_USER = getenv("POSTGRES_USER", "postgres") # get the postgres user and fallback to 'postgres'
-POSTGRES_PASSWORD = getenv("POSTGRES_PASSWORD", "postgres") # get the postgres password. Fallback to 'postgres'. 
-POSTGRES_DB = getenv("POSTGRES_DB", "postgres") # liek the above. We fallback to 'postgres'
-POSTGRES_HOST = getenv("POSTGRES_HOST", "database")
-POSTGRES_PORT = int(getenv("POSTGRES_PORT", "5432"))
 
-
-# generator for the postgres connection object so we can just import it from here whenever we need it
-
+# generator for the postgres Engine object so we can just import it from here whenever we need it
 def get_engine() -> Engine:
     url_object = URL.create(
         drivername="postgresql",
-        username = POSTGRES_USER,
-        password = POSTGRES_PASSWORD,
-        host = POSTGRES_HOST,
-        port = POSTGRES_PORT,
-        database = POSTGRES_DB
+        username = getenv("POSTGRES_USER", "postgres"),
+        password = getenv("POSTGRES_PASSWORD", "postgres"),
+        host = getenv("POSTGRES_HOST", "database"),
+        port = int(getenv("POSTGRES_PORT", "5432")),
+        database = getenv("POSTGRES_DB", "postgres")
     )
     return create_engine(url_object, echo=True)
     
