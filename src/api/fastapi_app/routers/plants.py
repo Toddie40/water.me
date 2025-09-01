@@ -82,6 +82,8 @@ async def get_plant(plant_name: str):
         statement = select(Plant).where(Plant.name == plant_name)
         results = session.exec(statement)
         plant = results.first()
+        if not plant:
+            raise HTTPException(status_code=404, detail="Plant not found.")
         return create_plant_response(plant)
 
 @router.put("/{plant_name}", response_model=PlantResponse)
@@ -137,6 +139,8 @@ async def delete_plant(plant_name: str):
             
             return BasicResponse(message=f"Plant {plant_name} successfully deleted")
     except Exception as e:
+        if isinstance(e, HTTPException):
+            raise e
         print(f"Error occured connecting to database: {e}")
         raise HTTPException(status_code=500, detail="Database error occured. Maybe the database is down?")
 
