@@ -37,6 +37,8 @@ class Plants(BaseModel):
 class BasicResponse(BaseModel):
     message: str
 
+#  Utility function for converting Plant objects into PlantResponse objects. 
+#  It effectively takes a Plant object and changes the image property to a path to the api endpoint for that plant's image.
 def create_plant_response(plant: Plant) -> PlantResponse:
     return PlantResponse(
         name = plant.name,

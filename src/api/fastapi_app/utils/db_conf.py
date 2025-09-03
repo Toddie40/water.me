@@ -1,6 +1,7 @@
 # this file consumes the requisite environment variables for the api to connect to the database
 from sqlalchemy import URL
 from sqlalchemy.engine import Engine
+from sqlalchemy.exc import IntegrityError
 
 from sqlmodel import SQLModel, create_engine, Session
 from os import getenv
@@ -23,9 +24,18 @@ def get_session() -> Session:
 
 def setup_db() -> None:
     from ..models.plants import Plant
-    from ..models.status import Status
+    from ..models.status import Status, SlotNumber
     from ..models.log import Log
     engine = get_engine()
     SQLModel.metadata.create_all(engine)
 
-
+    # populate the three status rows for the slots. These will be only ever be updated once they're made; never deleted or inserted
+    # iterating over the Enum like this means we can always add more slots just by changing the SlotNumber model. :)
+    try:
+        with Session(engine) as session:
+            for slot in SlotNumber:
+                session.add(Status(slot=slot))
+            session.commit()
+    except IntegrityError:
+        # if we land here then we have already populated the database and we shouldn't nulliy the current rows so we'll return here
+        return 

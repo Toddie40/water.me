@@ -1,25 +1,36 @@
 from pydantic import BaseModel, AfterValidator
+from sqlmodel import SQLModel, Field, Relationship
 from typing import Annotated, List
+from enum import IntEnum
 from datetime import datetime
 
-from .plants import PlantName # validated type for plant names
-from .validators import check_slot
+from .plants import Plant, PlantName # validated type for plant names
 
-SlotNumber = Annotated[int, AfterValidator(check_slot)]
 
-class AddSlotRequest(BaseModel):
-    slot_number: SlotNumber
-    plant_name: PlantName
+class SlotNumber(IntEnum):
+    one = 1
+    two = 2
+    three = 3
 
-class StatusItem(BaseModel):
-    slot: int
-    image: str
-    name: str
-    description: str
-    moisture : float
-    threshold : float
-    lastWatered : datetime
-    autoWater : bool
 
-class StatusList(BaseModel):
-    result: List[StatusItem]
+class Status(SQLModel, table=True):
+    slot: SlotNumber = Field(default=None, primary_key=True)
+    moisture : float | None
+    last_watered : datetime | None
+    auto_water : bool | None
+    plant_name: PlantName | None = Field(default=None, foreign_key="plant.name")
+    plant: Plant | None = Relationship()
+    
+
+class StatusSlotResponse(BaseModel):
+    slot: SlotNumber
+    moisture: float | None
+    last_watered: datetime | None
+    auto_water : bool | None
+    plant_name: PlantName | None
+    description: str | None
+    moisture_threshold: float | None
+    image_link: str | None
+
+class StatusResponse(BaseModel):
+    slots: List[StatusSlotResponse]
