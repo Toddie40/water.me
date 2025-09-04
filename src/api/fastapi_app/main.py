@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from .routers import plants, log, status
+from .routers import plants, log, status, control
 from .utils.db_conf import setup_db
 from .middleware import LoggingMiddleware, log_function
 
@@ -9,7 +9,7 @@ app = FastAPI()
 app.add_middleware(LoggingMiddleware, log_function=log_function)
 
 # api endpoints for controlling the plant waterer
-# app.include_router(control.router)
+app.include_router(control.router)
 app.include_router(status.router)
 app.include_router(plants.router)
 app.include_router(log.router)

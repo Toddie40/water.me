@@ -2,12 +2,25 @@
 # This is essentially just the water plant route, but also has meta-routes for finer control and testing
 
 from fastapi import APIRouter
+from fastapi.responses import StreamingResponse
 
-router = APIRouter()
+from ..models.status import SlotNumber
 
-@router.post("/water/{plant_index}")
-def water_plant(plant_index: int):
-    return {
-        "status" : "success!",
-        "message" : f"watered plant: {plant_index}"
-    }
+from .. import interface
+
+router = APIRouter(
+     tags=['Control'],
+     prefix="/control"
+)
+
+controller = interface.RPIController()
+
+@router.post("/water/{slot_number}")
+def water_plant(slot_number: SlotNumber):
+    return StreamingResponse(
+        controller.water(slot_number)
+    )
+
+@router.get("/sensors/{slot_number}")
+def read_sensor(slot_number: SlotNumber):
+    return controller.read_sensor(slot_number)

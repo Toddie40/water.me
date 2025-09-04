@@ -6,39 +6,10 @@ import busio
 import adafruit_ads1x15.ads1115 as ADS
 from adafruit_ads1x15.analog_in import AnalogIn
 import time
-import json
 
-
-class Plant:
-
-    def __init__(self, name: str):
-        self.name = name
-        self.last_watered = time.time
-
-    def set_name(self, _name: str):
-        self.name = _name
-
-    def get_name(self):
-        return self.name
-
-class PlantMonitor:
+class RPIController:
 
     def __init__(self):
-        self.plants = [None, None, None]
-        self.status =   {1 :    {
-                                    "name" : None,
-                                    "moisture" : None
-                                },
-                        2 :    {
-                                    "name" : None,
-                                    "moisture" : None
-                                },
-                        3 :    {
-                                    "name" : None,
-                                    "moisture" : None
-                                },       
-                        }
-
         # GPIO pins for the valves
         self.valves = {
             1 : 18,
@@ -90,35 +61,17 @@ class PlantMonitor:
 
     def close_valve(self, valve_no):
         GPIO.output(self.valves[valve_no], 0)
-
-    def add_plant(self, name, sensor_no):
-        self.plants[sensor_no-1] = Plant(name=name)
-
-    def remove_plant(self, sensor_no):
-        self.plants[sensor_no] = None        
-
-    def get_status(self):
-        
-        for plant_no in self.status.keys():
-            if self.plants[plant_no - 1] == None:
-                continue
-            plant_name = self.plants[plant_no - 1].get_name()
-            moisture = self.read_sensor(plant_no)
-            self.status[plant_no] = {
-                "name" : plant_name,
-                "moisture" : moisture
-            }
-        return self.status
-            
-    
+                
     def water(self, plant_no):
         self.close_all_valves()
         self.open_valve(plant_no)
         self.start_pump()
-        time.sleep(5)
+        for i in range(5):
+            time.sleep(1)
+            yield f"watering... (i seconds)"
         self.stop_pump()
         self.close_valve(plant_no)
-        return True
+        return "done"
 
     # exit handling for panic closing if the pump doesn't stop!
     def on_app_close(self, sig, frame):
