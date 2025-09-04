@@ -5,9 +5,7 @@ services:
 
   database:
     container_name: database
-    build:
-      context: ./src/database
-      dockerfile: Dockerfile
+    image: postgres:17.6-alpine3.22
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
