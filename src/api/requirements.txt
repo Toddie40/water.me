@@ -1,8 +1,11 @@
 fastapi[standard]
 python-multipart
-pydantic
+pydantic==2.11.9
 psycopg2-binary
-sqlmodel
+sqlmodel==0.0.27
 pillow
+apscheduler
+RPi.GPIO==0.7.1
+adafruit-circuitpython-ads1x15==2.4.4
 testcontainers[postgres]
 pytest

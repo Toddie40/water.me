@@ -18,7 +18,6 @@ services:
     networks:
       - plant-network
 
-
   api:
     container_name: api
     build:
@@ -27,7 +26,8 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: plant_waterer
+      DB_NAME: plant_waterer
+      POLLING_INTERVAL: 30 # seconds
     ports:
       - "8000:8000"
     networks:

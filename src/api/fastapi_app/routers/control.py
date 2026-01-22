@@ -6,21 +6,26 @@ from fastapi.responses import StreamingResponse
 
 from ..models.status import SlotNumber
 
-from .. import interface
+# from .. import interface
 
 router = APIRouter(
      tags=['Control'],
      prefix="/control"
 )
 
-controller = interface.RPIController()
+# controller = interface.RPIController()
+# TODO: update to actually poll hardware using interface class
+@router.get("/sensors")
+def get_sensors():
+    print("pollling sensors...")
+    return {"result": "success!"}
 
-@router.post("/water/{slot_number}")
-def water_plant(slot_number: SlotNumber):
-    return StreamingResponse(
-        controller.water(slot_number)
-    )
+# @router.post("/water/{slot_number}")
+# def water_plant(slot_number: SlotNumber):
+#     return StreamingResponse(
+#         controller.water(slot_number)
+#     )
 
-@router.get("/sensors/{slot_number}")
-def read_sensor(slot_number: SlotNumber):
-    return controller.read_sensor(slot_number)
+# @router.get("/sensors/{slot_number}")
+# def read_sensor(slot_number: SlotNumber):
+#     return controller.read_sensor(slot_number)

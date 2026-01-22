@@ -9,15 +9,25 @@ from os import getenv
 
 # generator for the postgres Engine object so we can just import it from here whenever we need it
 def get_engine() -> Engine:
-    url_object = URL.create(
-        drivername="postgresql",
-        username = getenv("POSTGRES_USER", "postgres"),
-        password = getenv("POSTGRES_PASSWORD", "postgres"),
-        host = getenv("POSTGRES_HOST", "database"),
-        port = int(getenv("POSTGRES_PORT", "5432")),
-        database = getenv("POSTGRES_DB", "postgres")
-    )
-    return create_engine(url_object, echo=True)
+    db_type = getenv("DATABASE_TYPE", "sqlite")
+    match db_type:
+        case "postgresql":
+            print("Connecting to remote postgres server...")
+            url_object = URL.create(
+                drivername="postgresql",
+                username = getenv("POSTGRES_USER", "postgres"),
+                password = getenv("POSTGRES_PASSWORD", "postgres"),
+                host = getenv("POSTGRES_HOST", "database"),
+                port = int(getenv("POSTGRES_PORT", "5432")),
+                database = getenv("DB_NAME", "postgres")
+            )
+            return create_engine(url_object, echo=True)
+        case "sqlite":
+            print("Running SQLite backend...")
+            return create_engine("sqlite:///plants.db")
+        case _:
+            raise ValueError("Please set the DATABASE_TYPE environment variable to a valid database type string.\nOptions are: 'postgresql' or 'sqlite'")
+    
     
 def get_session() -> Session:
     return Session(get_engine())
