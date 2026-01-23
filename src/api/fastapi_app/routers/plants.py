@@ -92,7 +92,8 @@ async def update_plant(
     name: Optional[str] = Form(None),
     description: Optional[str] = Form(None),
     moisture_threshold: Optional[float] = Form(None),
-    image: Optional[UploadFile] = File(None)
+    image: Optional[UploadFile] = File(None),
+    remove_image: Optional[str] = Form(None)
 ):
     new_plant = PlantUpdateRequest(name=name, description=description, moisture_threshold=moisture_threshold, image=image)
     try:
@@ -102,15 +103,19 @@ async def update_plant(
             plant_to_edit = results.first()
             if plant_to_edit == None:
                 raise HTTPException(status_code=404, detail=f"Unable to find plant: {plant_name} in the database")
-            
+
+            # Handle explicit image removal
+            if remove_image == 'true':
+                plant_to_edit.image = None
+
             # loop over all the properties provided in the update request body and add make those changes on the row.
             for property_name, property_value in new_plant.dict().items():
                 if property_value is not None:
                     if property_name == 'image':
                         # Need to process the image if there is one present.
                         property_value = await _process_image(property_value)
-                    
-                    setattr(plant_to_edit, property_name, property_value) 
+
+                    setattr(plant_to_edit, property_name, property_value)
 
             session.add(plant_to_edit)
             session.commit()

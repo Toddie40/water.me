@@ -20,7 +20,7 @@ def _generate_status_slot_response(status: Status, plant: Plant) -> StatusSlotRe
         plant_name = status.plant_name if plant else None,
         description = plant.description if plant else None,
         moisture_threshold = plant.moisture_threshold if plant else None,
-        image_link = f"/plants/images/{plant.plant_name}" if  (plant and plant.image) else None
+        image_link = f"/plants/images/{plant.name}" if  (plant and plant.image) else None
 )
 
 
