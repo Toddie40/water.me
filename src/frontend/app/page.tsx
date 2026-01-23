@@ -1,7 +1,5 @@
-import Status from "./components/status/Status";
+import { StatusGrid } from './components/status';
 
 export default function Home() {
-  return (
-    <Status />  
-  );
+  return <StatusGrid />;
 }

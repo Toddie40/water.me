@@ -1,38 +1,39 @@
-import axios from "axios";
-import { Plant } from "../interfaces/plant";
-import AddPlant from "./AddPlant";
-import './addPlant.css'
+'use client';
 
+import { useRouter } from 'next/navigation';
+import { PageHeader } from '@/app/components/layout/PageHeader';
+import { Card, CardContent } from '@/app/components/ui/Card';
+import { PlantForm } from '@/app/components/forms/PlantForm';
+import { createPlant } from '@/app/actions/plants';
 
+export default function AddPlantPage() {
+  const router = useRouter();
 
-async function addPlant(plantData: Plant) {
-    'use server'
-    //make request to api and add the new plant
-    const payload = new FormData();
-    
-    payload.append('name', plantData.name);
-    payload.append('description', plantData.description);
-    payload.append('moisture_threshold', plantData.moisture_threshold.toString());
-    
-    if (plantData.image) {
-        payload.append('image', plantData.image);
-    }
+  const handleSubmit = async (formData: FormData) => {
+    await createPlant(formData);
+    router.push('/library');
+  };
 
-    const {status} = await axios.post(`${process.env.API_ENDPOINT}/plants`, payload, {
-        headers: {
-        'Content-Type': 'multipart/form-data'
-        }
-    })
-
-    return status
-}
-
-export default async function addPlantPage() {
+  const handleCancel = () => {
+    router.back();
+  };
 
   return (
-    <>
-      <div className="pageHeading">Add Plant</div>
-      <AddPlant callback={addPlant}/>
-    </>
+    <div>
+      <PageHeader
+        title="Add New Plant"
+        subtitle="Create a new plant for your library"
+      />
+
+      <Card className="max-w-lg mx-auto">
+        <CardContent>
+          <PlantForm
+            onSubmit={handleSubmit}
+            onCancel={handleCancel}
+            submitLabel="Add Plant"
+          />
+        </CardContent>
+      </Card>
+    </div>
   );
 }

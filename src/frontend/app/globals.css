@@ -1,39 +1,51 @@
-:root {
-  --forest-green: #316931;
-  --moss-green: #8A9A5B;
-  --rich-soil-brown: #5B3A29;
-  --earth-taupe: #D2B48C;
-  --golden-yellow: #FFD700;
-  --petal-pink: #FFB6C1;
-  --tangerine-orange: #FFA500;
+@import "tailwindcss";
+
+@theme {
+  /* Primary Greens */
+  --color-botanical-sage: #7C9082;
+  --color-botanical-forest: #2D4739;
+  --color-botanical-moss: #8B9D77;
+  --color-botanical-fern: #4A6741;
+
+  /* Neutral Earth Tones */
+  --color-botanical-cream: #F8F6F1;
+  --color-botanical-sand: #E8E4DB;
+  --color-botanical-stone: #D4CFC5;
+  --color-botanical-bark: #5C4D42;
+  --color-botanical-soil: #8B7355;
+
+  /* Semantic Colors */
+  --color-botanical-water: #6BA3BE;
+  --color-botanical-warning: #C9A962;
+  --color-botanical-danger: #B85C5C;
+  --color-botanical-success: #6B9B76;
+
+  /* Font families */
+  --font-sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, monospace;
+}
+
+/* Base styles */
+html {
+  background-color: var(--color-botanical-cream);
 }
 
 body {
-  min-width: 320px;
   min-height: 100vh;
+  font-family: var(--font-sans);
+  color: var(--color-botanical-bark);
+  background-color: var(--color-botanical-cream);
 }
 
-.fullPageContent {
-  background-color: var(--earth-taupe);
-  max-width: 1280px;
-  margin: 0 auto;
-  text-align: center;
+/* Focus ring styles */
+*:focus-visible {
+  outline: 2px solid var(--color-botanical-fern);
+  outline-offset: 2px;
 }
 
-.subContent {
-  padding: 2rem;
-}
-
-.footer {
-  background-color: var(--rich-soil-brown);
-  padding: 1rem;
-  color: white;
-  font-weight: bold;
-}
-
-.pageHeading {
-  color: var(--forest-green);
-  font-weight: light;
-  text-align: left;
-  font-size: 2rem;
+/* Smooth scrolling */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
 }
