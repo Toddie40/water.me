@@ -12,7 +12,6 @@ def get_engine() -> Engine:
     db_type = getenv("DATABASE_TYPE", "sqlite")
     match db_type:
         case "postgresql":
-            print("Connecting to remote postgres server...")
             url_object = URL.create(
                 drivername="postgresql",
                 username = getenv("POSTGRES_USER", "postgres"),
@@ -24,7 +23,6 @@ def get_engine() -> Engine:
             return create_engine(url_object, echo=True)
         case "sqlite":
             database_dir = getenv("DATABASE_LOCATION", "./")
-            print("Running SQLite backend...")
             return create_engine(f"sqlite:///{database_dir}/plants.db")
         case _:
             raise ValueError("Please set the DATABASE_TYPE environment variable to a valid database type string.\nOptions are: 'postgresql' or 'sqlite'")

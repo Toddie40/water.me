@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from apscheduler.schedulers.background import BackgroundScheduler
 import httpx
+import logging
 
 # import routers
 from .routers import plants
@@ -14,15 +15,21 @@ from .routers import control
 from .utils.db_conf import setup_db
 from .middleware import LoggingMiddleware, log_function
 
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 
 # create database tables and perform necessary setup
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("Setting up db...")
+    logging.info("Setting up db...")
     setup_db()
-    print("done!")
+    logging.info("done!")
 
     POLLING_INTERVAL = int(getenv("POLLING_INTERVAL", "60")) # INterval to poll the hardware to take sensor measurements. Defaults to 60 seconds
+    
+    logging.info(f'Setting up scheduler to poll sensors every {POLLING_INTERVAL} seconds')
     scheduler = BackgroundScheduler()
     scheduler.add_job(control.get_sensors, "interval", seconds = POLLING_INTERVAL)
     scheduler.start()
@@ -30,9 +37,9 @@ async def lifespan(app: FastAPI):
     yield
 
     # Cleanup when app shuts down
-    print("Shutting down scheduler...")
+    logging.info("Shutting down scheduler...")
     scheduler.shutdown(wait=True)
-    print("done!")
+    logging.info("done!")
 
 app = FastAPI(lifespan=lifespan)
 

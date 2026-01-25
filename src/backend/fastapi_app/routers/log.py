@@ -1,8 +1,11 @@
 from fastapi import APIRouter, HTTPException
 from sqlmodel import select, func
+import logging
+
 from ..utils.db_conf import get_session
 from ..models.log import Log, LogResponse
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 @router.get("/log", response_model=LogResponse, tags=['Log'])
@@ -25,4 +28,5 @@ def get_logs(lines_per_page: int, page_no: int):
             
             return LogResponse(items=log_items, total=total_count)
     except Exception as e:
+        logger.critical("Encounted error handling request to /logs. Responding with 500 error.")
         raise HTTPException(status_code=500, detail=f"Unable to access logs. Error: {e}")

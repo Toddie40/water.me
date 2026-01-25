@@ -5,10 +5,12 @@ from PIL import Image
 import io
 from sqlalchemy.exc import OperationalError, IntegrityError
 from sqlmodel import select
+import logging
 
 from ..models.plants import BasicResponse, Plant, Plants, AddPlantRequest, PlantUpdateRequest, PlantResponse, create_plant_response
 from ..utils.db_conf import get_session
 
+logger = logging.getLogger(__name__)
 
 async def _process_image(image: Union[bytes, None]) -> Union[bytes, None]:
     if not image:
@@ -65,7 +67,7 @@ async def add_plant(
             session.commit()
             session.refresh(plant)
 
-        print("Added plant: ", plant)
+        logger.info(f"Added plant: {plant}")
         return create_plant_response(plant)
 
     except IntegrityError as e:
@@ -124,7 +126,7 @@ async def update_plant(
     except Exception as e:
         if isinstance(e, HTTPException):
             raise e
-        print(f"Error connecting to database: {e}")
+        logger.critical(f"Error connecting to database: {e}")
         raise HTTPException(status_code=500, detail="Unable to reach databse. Maybe it's dead?")
     
 @router.delete("/{plant_name}")
@@ -138,7 +140,7 @@ async def delete_plant(plant_name: str):
             if plant is None:
                 raise HTTPException(status_code=404, detail="Plant not found")            
             
-            print("Deleting from database plant: ", plant)
+            logger.info(f"Deleting from database plant: {plant}")
             session.delete(plant)  
             session.commit() 
             
@@ -146,7 +148,7 @@ async def delete_plant(plant_name: str):
     except Exception as e:
         if isinstance(e, HTTPException):
             raise e
-        print(f"Error occured connecting to database: {e}")
+        logger.critical(f"Error occured connecting to database: {e}")
         raise HTTPException(status_code=500, detail="Database error occured. Maybe the database is down?")
 
 

@@ -1,12 +1,13 @@
 # This file contains the api routes for endpoints which perform direct control of the plant waterer.
 # This is essentially just the water plant route, but also has meta-routes for finer control and testing
+import logging
 
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 
 from ..models.status import SlotNumber
 
-# from .. import interface
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
      tags=['Control'],
@@ -17,7 +18,7 @@ router = APIRouter(
 # TODO: update to actually poll hardware using interface class
 @router.get("/sensors")
 def get_sensors():
-    print("pollling sensors...")
+    logger.info("pollling sensors...")
     return {"result": "success!"}
 
 # @router.post("/water/{slot_number}")
