@@ -3,21 +3,22 @@ FROM dtcooper/raspberrypi-os:python-bullseye
 
 WORKDIR /app
 
-# install python requirements
-COPY ./requirements.txt requirements.txt
-RUN pip install -r requirements.txt
+# install uv
+COPY --from=ghcr.io/astral-sh/uv:0.9.26 /uv /uvx /bin/
 
 COPY . .
+
+# Disable development dependencies
+ENV UV_NO_DEV=1
+RUN uv sync --locked
 
 EXPOSE 8000
 
 WORKDIR /app/fastapi_app
 
-RUN apt-get update && apt-get install -y wget && rm -rf /var/lib/apt/lists/*
-
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-ENTRYPOINT ["fastapi", "run"]
+ENTRYPOINT ["uv", "run", "fastapi", "run"]
 
 
